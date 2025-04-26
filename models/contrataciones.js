@@ -4,7 +4,7 @@ const { INTEGER } = require('sequelize');
 const ContratacionesSchema = Schema({
     IdJugador: {
         type: Schema.Types.ObjectId,
-        ref: 'Jugadores',
+        ref: 'Futbolistas',
         required: true
     },
     IdEquipo: {
