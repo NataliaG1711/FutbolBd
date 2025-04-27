@@ -11,7 +11,7 @@ const obtenerEquipos = async (req, res = response) => {
     const [total, equipos] = await Promise.all([
       Equipos.countDocuments(query),
       Equipos.find(query)
-        .populate('pais', 'nombre continente') // Aquí hacemos populate de país
+        .populate('pais', 'continente') // Aquí hacemos populate de país
         .skip(Number(desde))
         .limit(Number(limite))
     ]);
@@ -32,7 +32,7 @@ const obtenerEquipo = async (req, res = response) => {
 
   try {
     const equipo = await Equipos.findById(id)
-      .populate('pais', 'nombre continente');
+      .populate('pais', 'continente');
 
     if (!equipo) {
       return res.status(404).json({ Ok: false, resp: 'Equipo no encontrado' });

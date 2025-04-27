@@ -19,4 +19,4 @@
         return pais;
     };
 
-    module.exports = model('Pais', PaisSchema);
+    module.exports = model('Paises', PaisSchema);

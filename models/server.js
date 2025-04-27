@@ -28,7 +28,7 @@ class Server {
             futbolistas: '/api/futbolistas',
             equipos: '/api/equipos',
             paises: '/api/paises',
-            contrataciones: 'api/contrataciones'
+            contrataciones: '/api/contrataciones'
         }
 
 

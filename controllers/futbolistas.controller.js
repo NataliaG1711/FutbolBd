@@ -1,5 +1,5 @@
 const { response } = require('express');
-const { Equipos, Paises } = require('../models');
+const { Equipos, Paises, Futbolistas } = require('../models');
 const { isValidObjectId } = require('../helpers/mongo-verify');
 
 // Obtener todos los equipos
