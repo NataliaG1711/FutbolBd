@@ -3,7 +3,7 @@ const {Heroe} = require('../models/mongoHeroe.model');
 const {Contratacion} = require('../models/contrataciones')
 const {Equipo} = require('../models/equipos')
 const {Futbolista} = require('../models/futbolistas')
-const {Pais} = require('../models/paises')
+const Pais = require('../models/paises')
 
 const existeUsuarioPorId = async (id) => {
     const existeUsuario = await Usuario.findById(id);

@@ -1,5 +1,5 @@
 const { response } = require("express");
-const { Paises} = require("../models");
+const Paises = require("../models/paises");
 const { isValidObjectId } = require("../helpers/mongo-verify");
 
 const obtenerPaises = async (req, res = response) => {
