@@ -23,16 +23,16 @@ const FutbolistaSchema = Schema({
   },
   pais_nacimiento: {
     type: Schema.Types.ObjectId,
-    ref: 'Pais',
+    ref: 'Paises',
     required: [true, 'El país es obligatorio']
   },
   equipo_actual: {
     type: Schema.Types.ObjectId,
-    ref: 'Equipo',
+    ref: 'Equipos',
     required: [true, 'El equipo actual es obligatorio']
   },
   equipos_anteriores: {
-    type: [{ type: Schema.Types.ObjectId, ref: 'Equipo' }],
+    type: [{ type: Schema.Types.ObjectId, ref: 'Equipos' }],
     default: [],
     validate: [arr => Array.isArray(arr), 'Equipos anteriores debe ser un arreglo']
   }
@@ -45,4 +45,4 @@ FutbolistaSchema.methods.toJSON = function () {
   return futbolista;
 };
 
-module.exports = model('Futbolista', FutbolistaSchema);
+module.exports = model('Futbolistas', FutbolistaSchema);

@@ -11,9 +11,9 @@ const obtenerFutbolistas = async (req, res = response) => {
     const [total, futbolistas] = await Promise.all([
       Futbolistas.countDocuments(query),
       Futbolistas.find(query)
-        .populate('pais_id', 'nombre continente') // Muestra nombre y continente del país
-        .populate('equipo_id', 'nombre')           // Muestra solo el nombre del equipo actual
-        .populate('equipos_anteriores', 'nombre')  // Muestra nombre de equipos anteriores
+        .populate('pais_nacimiento', 'nombre continente') // Muestra nombre y continente del país
+        .populate('equipo_actual', 'nombre_equipo')           // Muestra solo el nombre del equipo actual
+        .populate('equipos_anteriores', 'nombre_equipo')  // Muestra nombre de equipos anteriores
         .skip(Number(desde))
         .limit(Number(limite))
     ]);
@@ -35,9 +35,9 @@ const obtenerFutbolista = async (req, res = response) => {
 
   try {
     const futbolista = await Futbolistas.findById(id)
-      .populate('pais_id', 'nombre continente')
-      .populate('equipo_id', 'nombre')
-      .populate('equipos_anteriores', 'nombre');
+      .populate('pais_nacimiento', 'nombre continente')
+      .populate('equipo_actual', 'nombre_equipo')
+      .populate('equipos_anteriores', 'nombre_equipo');
 
     if (!futbolista) {
       return res.status(404).json({ Ok: false, resp: 'Futbolista no encontrado' });
@@ -51,16 +51,16 @@ const obtenerFutbolista = async (req, res = response) => {
 
 // Crear un nuevo equipo
 const crearFutbolista = async (req, res = response) => {
-  const { nombre, apellidos, edad, internacional, fecha_nacimiento, pais_id, equipo_id, equipos_anteriores = [] } = req.body;
+  const { nombre, apellidos, edad, internacional, fecha_nacimiento, pais_nacimiento, equipo_actual, equipos_anteriores = [] } = req.body;
 
   try {
     // Validar que país_id sea un ObjectId válido
-    if (!isValidObjectId(pais_id)) {
+    if (!isValidObjectId(pais_nacimiento)) {
       return res.status(400).json({ Ok: false, resp: 'ID de país inválido' });
     }
 
-    // Validar que equipo_id sea un ObjectId válido
-    if (!isValidObjectId(equipo_id)) {
+    // Validar que equipo_actual sea un ObjectId válido
+    if (!isValidObjectId(equipo_actual)) {
       return res.status(400).json({ Ok: false, resp: 'ID de equipo inválido' });
     }
 
@@ -71,13 +71,13 @@ const crearFutbolista = async (req, res = response) => {
     }
 
     // Verificar existencia de país
-    const existePais = await Paises.findById(pais_id);
+    const existePais = await Paises.findById(pais_nacimiento);
     if (!existePais) {
       return res.status(404).json({ Ok: false, resp: 'El país no existe' });
     }
 
     // Verificar existencia del equipo actual
-    const existeEquipo = await Equipos.findById(equipo_id);
+    const existeEquipo = await Equipos.findById(equipo_actual);
     if (!existeEquipo) {
       return res.status(404).json({ Ok: false, resp: 'El equipo no existe' });
     }
@@ -89,8 +89,8 @@ const crearFutbolista = async (req, res = response) => {
       edad, 
       internacional, 
       fecha_nacimiento, 
-      pais_id, 
-      equipo_id, 
+      pais_nacimiento, 
+      equipo_actual, 
       equipos_anteriores 
     });
 
@@ -108,33 +108,33 @@ const crearFutbolista = async (req, res = response) => {
 // Actualizar un equipo
 const actualizarFutbolista = async (req, res = response) => {
   const { id } = req.params;
-  const { pais_id, equipo_id, equipos_anteriores, ...data } = req.body;
+  const { pais_nacimiento, equipo_actual, equipos_anteriores, ...data } = req.body;
 
   if (!isValidObjectId(id)) {
     return res.status(400).json({ Ok: false, resp: 'El ID proporcionado no es válido' });
   }
 
   // Validar y asignar nuevos valores si vienen en la actualización
-  if (pais_id) {
-    if (!isValidObjectId(pais_id)) {
+  if (pais_nacimiento) {
+    if (!isValidObjectId(pais_nacimiento)) {
       return res.status(400).json({ Ok: false, resp: 'ID de país inválido' });
     }
-    const existePais = await Paises.findById(pais_id);
+    const existePais = await Paises.findById(pais_nacimiento);
     if (!existePais) {
       return res.status(404).json({ Ok: false, resp: 'El país no existe' });
     }
-    data.pais_id = pais_id;
+    data.pais_nacimiento = pais_nacimiento;
   }
 
-  if (equipo_id) {
-    if (!isValidObjectId(equipo_id)) {
+  if (equipo_actual) {
+    if (!isValidObjectId(equipo_actual)) {
       return res.status(400).json({ Ok: false, resp: 'ID de equipo inválido' });
     }
-    const existeEquipo = await Equipos.findById(equipo_id);
+    const existeEquipo = await Equipos.findById(equipo_actual);
     if (!existeEquipo) {
       return res.status(404).json({ Ok: false, resp: 'El equipo no existe' });
     }
-    data.equipo_id = equipo_id;
+    data.equipo_actual = equipo_actual;
   }
 
   if (equipos_anteriores) {
@@ -147,9 +147,9 @@ const actualizarFutbolista = async (req, res = response) => {
 
   try {
     const futbolista = await Futbolistas.findByIdAndUpdate(id, data, { new: true })
-      .populate('pais_id', 'nombre continente')
-      .populate('equipo_id', 'nombre')
-      .populate('equipos_anteriores', 'nombre');
+      .populate('pais_nacimiento', 'nombre continente')
+      .populate('equipo_actual', 'nombre_equipo')
+      .populate('equipos_anteriores', 'nombre_equipo');
 
     if (!futbolista) {
       return res.status(404).json({ Ok: false, resp: 'Futbolista no encontrado' });

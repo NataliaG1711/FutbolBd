@@ -1,8 +1,8 @@
 const { Usuario} = require("../models/mongoUsuario.model");
 const {Heroe} = require('../models/mongoHeroe.model');
-const {Contratacion} = require('../models/contrataciones')
+const Contratacion = require('../models/contrataciones')
 const Equipo = require('../models/equipos')
-const {Futbolista} = require('../models/futbolistas')
+const Futbolista = require('../models/futbolistas')
 const Pais = require('../models/paises')
 
 const existeUsuarioPorId = async (id) => {
