@@ -24,7 +24,11 @@ class Server {
             //Ajusto la url para la outorizacion por login
             auth: '/api/auth',
             usuarios: '/api/usuarios',
-            heroes: '/api/heroesmongo'
+            heroes: '/api/heroesmongo',
+            futbolistas: '/api/futbolistas',
+            equipos: '/api/equipos',
+            paises: '/api/paises',
+            contrataciones: 'api/contrataciones'
         }
 
 
@@ -118,6 +122,10 @@ class Server {
         this.app.use(this.pathsMySql.heroes, require('../routes/heroes.route'));
         this.app.use(this.pathsMongo.usuarios, require('../routes/mongoUsuario.route'));
         this.app.use(this.pathsMongo.heroes, require('../routes/mongoHeroes.routes')); 
+        this.app.use(this.pathsMongo.futbolistas, require('../routes/futbolistas.route'));
+        this.app.use(this.pathsMongo.equipos, require('../routes/equipos.route'));
+        this.app.use(this.pathsMongo.paises, require('../routes/paises.route'));
+        this.app.use(this.pathsMongo.contrataciones, require('../routes/contrataciones.route'))
 
         //Activo la ruta del login
         this.app.use(this.pathsMongo.auth, require('../routes/auth.route'));

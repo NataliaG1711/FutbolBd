@@ -1,4 +1,9 @@
 const { Usuario} = require("../models/mongoUsuario.model");
+const {Heroe} = require('../models/mongoHeroe.model');
+const {Contratacion} = require('../models/contrataciones')
+const {Equipo} = require('../models/equipos')
+const {Futbolista} = require('../models/futbolistas')
+const {Pais} = require('../models/paises')
 
 const existeUsuarioPorId = async (id) => {
     const existeUsuario = await Usuario.findById(id);
@@ -7,12 +12,7 @@ const existeUsuarioPorId = async (id) => {
     }
   };
 
-  module.exports = {
-     existeUsuarioPorId,
-   };
   
-const Heroe = require('../models/mongoHeroe.model');
-
 const existeHeroePorId = async (id = '') => {
     const existeHeroe = await Heroe.findById(id);
     if (!existeHeroe) {
@@ -21,6 +21,43 @@ const existeHeroePorId = async (id = '') => {
     return true;
 };
 
+const existeContratacionPorId = async (id = '') => {
+  const existeContratacion = await Contratacion.findById(id);
+  if (!existeContratacion) {
+      throw new Error(`La contratacion con id ${id} no existe`);
+  }
+  return true;
+};
+
+const existeEquipoPorId = async (id = '') => {
+  const existeEquipo = await Equipo.findById(id);
+  if (!existeEquipo) {
+    throw new Error(`El equipo con id ${id} no existe`);
+}
+return true;
+}
+
+const existeFutbolistaPorId = async (id = '') => {
+  const existeFutbolista = await Futbolista.findById(id);
+  if (!existeFutbolista) {
+    throw new Error(`El futbolista con id ${id} no existe`);
+}
+return true;
+}
+
+const existePaisPorId = async (id = '') => {
+  const existePais = await Pais.findById(id);
+  if (!existePais) {
+    throw new Error(`El pais con id ${id} no existe`);
+}
+return true;
+}
+
 module.exports = {
-    existeHeroePorId
+  existeUsuarioPorId,
+  existeHeroePorId,
+  existeContratacionPorId,
+  existeEquipoPorId,
+  existeFutbolistaPorId,
+  existePaisPorId
 };

@@ -1,5 +1,4 @@
 const { Schema, model } = require('mongoose');
-const { INTEGER } = require('sequelize');
 
 const ContratacionesSchema = Schema({
     IdJugador: {
@@ -18,7 +17,7 @@ const ContratacionesSchema = Schema({
         required: 'Debe tener una fecha de contratacion '
     },
     monto_contratacion: {
-        type: INTEGER,
+        type: Number,
         required: 'Debe de tener un monto de contratacion'
     }
 
