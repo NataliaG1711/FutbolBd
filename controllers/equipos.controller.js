@@ -47,15 +47,7 @@ const obtenerEquipo = async (req, res = response) => {
 // Crear un nuevo equipo
 const crearEquipo = async (req, res = response) => {
   const { nombre_equipo, ciudad, pais, estadio } = req.body;
-
-  const existeEquipo = Equipos.findOne({nombre_equipo});
   
-    if (existeEquipo){
-      return res.status(400).json({
-        ok: false,
-        msg: 'Ya existe el equipo'
-      })
-    }
 
   try {
     // Validar que el país enviado sea un ObjectId válido
@@ -68,6 +60,10 @@ const crearEquipo = async (req, res = response) => {
 
     if (!existePais) {
       return res.status(404).json({ Ok: false, resp: 'El país no existe' });
+    }
+    const existeEquipo = Equipos.findOne({nombre_equipo});
+    if(existeEquipo){
+      return res.status(409).json({ Ok: false, resp: 'Ya existe ese equipo' });
     }
 
     // Crear el nuevo equipo
