@@ -44,6 +44,7 @@ const obtenerPais = async (req, res = response) => {
 const crearPais = async (req, res = response) => {
   const { nombre, continente } = req.body;
 
+
   try {
     const paisExiste = await Paises.findOne({ nombre: nombre.toUpperCase() });
 

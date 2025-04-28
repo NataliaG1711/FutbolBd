@@ -3,7 +3,7 @@ const { Contrataciones, Equipos, Futbolistas } = require('../models');
 const { isValidObjectId } = require('../helpers/mongo-verify');
 
 // Obtener todos los Contrataciones
-const obtenerContrataciones = async (req, res = response) => {
+const obtenerContrataciones = async (req, res = response, next) => {
   const { limite = 25, desde = 0 } = req.query;
   const query = {};
 
@@ -12,19 +12,19 @@ const obtenerContrataciones = async (req, res = response) => {
       Contrataciones.countDocuments(query),
       Contrataciones.find(query)
         .populate('IdEquipo', 'nombre_equipo')
-        .populate('IdJugador', 'nombre') // Aquí hacemos populate de país
+        .populate('IdJugador', 'nombre')
         .skip(Number(desde))
         .limit(Number(limite))
     ]);
 
     res.json({ Ok: true, total, resp: contrataciones });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    next(error);
   }
 };
 
-// Obtener un solo equipo
-const obtenerContratacion = async (req, res = response) => {
+// Obtener una sola contratación
+const obtenerContratacion = async (req, res = response, next) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
@@ -33,111 +33,123 @@ const obtenerContratacion = async (req, res = response) => {
 
   try {
     const contratacion = await Contrataciones.findById(id)
-    .populate('IdEquipo', 'nombre_equipo')
-    .populate('IdJugador', 'nombre')
+      .populate('IdEquipo', 'nombre_equipo')
+      .populate('IdJugador', 'nombre');
 
     if (!contratacion) {
-      return res.status(404).json({ Ok: false, resp: 'Contratacion no encontrada' });
+      return res.status(404).json({ Ok: false, resp: 'Contratación no encontrada' });
     }
 
     res.json({ Ok: true, resp: contratacion });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    next(error);
   }
 };
 
-// Crear un nuevo equipo
-const crearContratacion = async (req, res = response) => {
+// Crear una nueva contratación
+const crearContratacion = async (req, res = response, next) => {
   const { IdJugador, IdEquipo, fecha_contratacion, monto_contratacion } = req.body;
 
   try {
-    // Validar que el país enviado sea un ObjectId válido
+    // Validar ID de jugador
     if (!isValidObjectId(IdJugador)) {
       return res.status(400).json({ Ok: false, resp: 'ID de jugador inválido' });
     }
-
-    // Verificar que el país exista
     const existeJugador = await Futbolistas.findById(IdJugador);
-
     if (!existeJugador) {
       return res.status(404).json({ Ok: false, resp: 'El jugador no existe' });
     }
 
+    // Validar ID de equipo
     if (!isValidObjectId(IdEquipo)) {
       return res.status(400).json({ Ok: false, resp: 'ID de equipo inválido' });
     }
-
-    // Verificar que el país exista
     const existeEquipo = await Equipos.findById(IdEquipo);
-
     if (!existeEquipo) {
       return res.status(404).json({ Ok: false, resp: 'El equipo no existe' });
     }
 
-    // Crear el nuevo equipo
-    const contratacion = new Contrataciones({ IdJugador, IdEquipo, fecha_contratacion, monto_contratacion });
+    // Verificar que no exista una contratación duplicada
+    const contratacionExistente = await Contrataciones.findOne({ IdJugador, IdEquipo });
+    if (contratacionExistente) {
+      return res.status(409).json({ Ok: false, resp: 'Ya existe una contratación entre este jugador y equipo' });
+    }
 
-    // Guardar en BD
+    // Crear la nueva contratación
+    const contratacion = new Contrataciones({ IdJugador, IdEquipo, fecha_contratacion, monto_contratacion });
     await contratacion.save();
 
     res.status(201).json({ Ok: true, resp: contratacion });
-
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    next(error);
   }
 };
 
-// Actualizar un equipo
-const actualizarContratacion = async (req, res = response) => {
+// Actualizar una contratación
+const actualizarContratacion = async (req, res = response, next) => {
   const { id } = req.params;
-  const { IdJugador, IdEquipo,...data } = req.body;
+  const { IdJugador, IdEquipo, ...data } = req.body;
 
   if (!isValidObjectId(id)) {
     return res.status(400).json({ Ok: false, resp: 'El ID proporcionado no es válido' });
   }
-  if (IdJugador) { // Solo validamos si viene un nuevo país en la actualización
-    if (!isValidObjectId(IdJugador)) {
-      return res.status(400).json({ Ok: false, resp: 'ID de jugador inválido' });
-    }
-
-    const existeJugador = await Futbolistas.findById(IdJugador);
-    if (!existeJugador) {
-      return res.status(404).json({ Ok: false, resp: 'El jugador no existe' });
-    }
-
-    data.IdJugador = IdJugador; // Si todo está bien, actualizamos el campo país
-  }
-
-  if (IdEquipo) { // Solo validamos si viene un nuevo país en la actualización
-    if (!isValidObjectId(IdEquipo)) {
-      return res.status(400).json({ Ok: false, resp: 'ID de equipo inválido' });
-    }
-
-    const existeEquipo = await Equipos.findById(IdEquipo);
-    if (!existeEquipo) {
-      return res.status(404).json({ Ok: false, resp: 'El equipo no existe' });
-    }
-
-    data.IdEquipo = IdEquipo; // Si todo está bien, actualizamos el campo país
-  }
 
   try {
-    const contratacion = await Contrataciones.findByIdAndUpdate(id, data, { new: true })
-    .populate('IdEquipo', 'nombre_equipo')
-    .populate('IdJugador', 'nombre')
-
-    if (!contratacion) {
-      return res.status(404).json({ Ok: false, resp: 'Contratacion no encontrada' });
+    const contratacionActual = await Contrataciones.findById(id);
+    if (!contratacionActual) {
+      return res.status(404).json({ Ok: false, resp: 'Contratación no encontrada' });
     }
+
+    if (IdJugador) {
+      if (!isValidObjectId(IdJugador)) {
+        return res.status(400).json({ Ok: false, resp: 'ID de jugador inválido' });
+      }
+      const existeJugador = await Futbolistas.findById(IdJugador);
+      if (!existeJugador) {
+        return res.status(404).json({ Ok: false, resp: 'El jugador no existe' });
+      }
+      data.IdJugador = IdJugador;
+    }
+
+    if (IdEquipo) {
+      if (!isValidObjectId(IdEquipo)) {
+        return res.status(400).json({ Ok: false, resp: 'ID de equipo inválido' });
+      }
+      const existeEquipo = await Equipos.findById(IdEquipo);
+      if (!existeEquipo) {
+        return res.status(404).json({ Ok: false, resp: 'El equipo no existe' });
+      }
+      data.IdEquipo = IdEquipo;
+    }
+
+    // Verificar que no dupliquemos si cambiamos jugador o equipo
+    if (data.IdJugador || data.IdEquipo) {
+      const nuevoJugador = data.IdJugador || contratacionActual.IdJugador;
+      const nuevoEquipo = data.IdEquipo || contratacionActual.IdEquipo;
+
+      const duplicado = await Contrataciones.findOne({
+        _id: { $ne: id }, // Excluirse a sí mismo
+        IdJugador: nuevoJugador,
+        IdEquipo: nuevoEquipo
+      });
+
+      if (duplicado) {
+        return res.status(409).json({ Ok: false, resp: 'Ya existe una contratación entre este jugador y equipo' });
+      }
+    }
+
+    const contratacion = await Contrataciones.findByIdAndUpdate(id, data, { new: true })
+      .populate('IdEquipo', 'nombre_equipo')
+      .populate('IdJugador', 'nombre');
 
     res.json({ Ok: true, resp: contratacion });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    next(error);
   }
 };
 
-// Borrar un equipo 
-const borrarContratacion = async (req, res = response) => {
+// Borrar una contratación
+const borrarContratacion = async (req, res = response, next) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) {
@@ -148,12 +160,12 @@ const borrarContratacion = async (req, res = response) => {
     const contratacion = await Contrataciones.findByIdAndDelete(id);
 
     if (!contratacion) {
-      return res.status(404).json({ Ok: false, resp: 'Contratacion no encontrado' });
+      return res.status(404).json({ Ok: false, resp: 'Contratación no encontrada' });
     }
 
     res.json({ Ok: true, resp: contratacion });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    next(error);
   }
 };
 

@@ -11,7 +11,7 @@ const obtenerEquipos = async (req, res = response) => {
     const [total, equipos] = await Promise.all([
       Equipos.countDocuments(query),
       Equipos.find(query)
-        .populate('pais', 'continente') // Aquí hacemos populate de país
+        .populate('pais','nombre') // Aquí hacemos populate de país
         .skip(Number(desde))
         .limit(Number(limite))
     ]);
@@ -47,6 +47,15 @@ const obtenerEquipo = async (req, res = response) => {
 // Crear un nuevo equipo
 const crearEquipo = async (req, res = response) => {
   const { nombre_equipo, ciudad, pais, estadio } = req.body;
+
+  const existeEquipo = Equipos.findOne({nombre_equipo});
+  
+    if (existeEquipo){
+      return res.status(400).json({
+        ok: false,
+        msg: 'Ya existe el equipo'
+      })
+    }
 
   try {
     // Validar que el país enviado sea un ObjectId válido

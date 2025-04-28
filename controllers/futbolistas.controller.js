@@ -4,6 +4,9 @@ const { isValidObjectId } = require('../helpers/mongo-verify');
 
 // Obtener todos los equipos
 const obtenerFutbolistas = async (req, res = response) => {
+
+
+
   const { limite = 25, desde = 0 } = req.query;
   const query = {}; // Puedes agregar filtros si quieres
 
@@ -51,7 +54,17 @@ const obtenerFutbolista = async (req, res = response) => {
 
 // Crear un nuevo equipo
 const crearFutbolista = async (req, res = response) => {
+
   const { nombre, apellidos, edad, internacional, fecha_nacimiento, pais_nacimiento, equipo_actual, equipos_anteriores = [] } = req.body;
+
+  const existeFutbolista = Futbolistas.findOne({nombre});
+
+  if (existeFutbolista){
+    return res.status(400).json({
+      ok: false,
+      msg: 'Ya existe el futbolista'
+    })
+  }
 
   try {
     // Validar que país_id sea un ObjectId válido
