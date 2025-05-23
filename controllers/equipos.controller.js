@@ -61,7 +61,7 @@ const crearEquipo = async (req, res = response) => {
     if (!existePais) {
       return res.status(404).json({ Ok: false, resp: 'El país no existe' });
     }
-    const existeEquipo = Equipos.findOne({nombre_equipo});
+    const existeEquipo = await Equipos.findOne({nombre_equipo});
     if(existeEquipo){
       return res.status(409).json({ Ok: false, resp: 'Ya existe ese equipo' });
     }
