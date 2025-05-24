@@ -5,6 +5,8 @@ const { bdmysql } = require('../database/MySqlConnection');
 
 const { dbConnectionMongo } = require('../database/MongoConnection');
 
+const {dbConnectionNeo4j} = require('../database/Neo4jConnection')
+
 
 class Server {
 
@@ -31,6 +33,21 @@ class Server {
             contrataciones: '/api/contrataciones'
         }
 
+        this.pathsNeo = {
+            //Ajusto la url para la outorizacion por login
+            personas: '/api/personasNeo',
+            paises: '/api/paisesNeo',
+            ciudades: '/api/ciudadesNeo',
+            //usuarios: '/api/usuarios',
+            //heroes:'/api/heroes',            
+            //multimedias:'/api/multimedias',
+            //multimediasheroe:'/api/multimediasheroe',
+            //grupomultimedias:'/api/grupomultimedias',
+
+
+        }
+
+
 
         /*
         this.app.get('/', function (req, res) {
@@ -44,6 +61,9 @@ class Server {
 
         //Aqui me conecto a MongoDB
         this.conectarBDMongo();
+
+        //Aqui me conecto a Neo
+        this.conectarNeo4j();
 
 
         //Middlewares
@@ -68,6 +88,10 @@ class Server {
     
     async conectarBDMongo(){
         await dbConnectionMongo();
+    }
+
+    async conectarNeo4j(){
+        await dbConnectionNeo4j();
     }
 
     
@@ -129,7 +153,11 @@ class Server {
 
         //Activo la ruta del login
         this.app.use(this.pathsMongo.auth, require('../routes/auth.route'));
-        
+
+        //Neo4j
+        this.app.use(this.pathsNeo.personas, require('../routes/personasNeo.route'))
+        this.app.use(this.pathsNeo.paises, require('../routes/paisesNeo.route'))
+        this.app.use(this.pathsNeo.ciudades, require('../routes/ciudadesNeo.route'))
     }
     
 
