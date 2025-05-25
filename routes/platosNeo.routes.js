@@ -1,4 +1,4 @@
-require('../controllers/personasNeo.controller');
+require('../controllers/platosNeo.controller');
 
 
 const {validarCampos} = require('../middlewares/validar-campos');
@@ -7,12 +7,12 @@ const { existeCiudadPorIdNeo} = require('../helpers/db-validators');
 
 
 const { Router } = require('express');
-const { createPersona,
-    getAllPersonas,
-    getPersonaById,
-    updatePersona,
-    deletePersona
-    } = require('../controllers/personasNeo.controller');
+const { createPlato,
+    getAllPlatos,
+    getPlatoById,
+    updatePlato,
+    deletePlato
+    } = require('../controllers/platosNeo.controller');
 
 
 const router = Router();
@@ -21,13 +21,13 @@ const router = Router();
 router.post('/',
     check('IdCiudad').custom( existeCiudadPorIdNeo ),
     validarCampos,
-    createPersona);
+    createPlato);
 
 
-router.get('/', getAllPersonas);
-router.get('/:id', getPersonaById);
-router.put('/:id', updatePersona);
-router.delete('/:id', deletePersona);
+router.get('/', getAllPlatos);
+router.get('/:id', getPlatoById);
+router.put('/:id', updatePlato);
+router.delete('/:id', deletePlato);
 
 
 module.exports = router;

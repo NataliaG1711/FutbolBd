@@ -21,7 +21,7 @@ const router = Router();
 router.post('/',
     check('IdPais').custom( existePaisPorIdNeo ),
     validarCampos,
-    createPersona);
+    createCiudad);
 
 
 router.get('/', getAllCiudades);
