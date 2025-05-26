@@ -51,10 +51,11 @@ const getAllPlatos = async (req, res) => {
 
 const getPlatoById = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       `MATCH (p:Plato {id: $id}) RETURN p`,
-      { id: req.params.id }
+      { id}
     );
     if (!result.records.length) {
       return res.status(404).json({ message: 'Plato no encontrada' });
@@ -71,6 +72,7 @@ const getPlatoById = async (req, res) => {
 const updatePlato = async (req, res) => {
   const { nombre, tipo, descripcion, ciudad } = req.body;
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     await session.run(
       `MATCH (p:Plato {id: $id})
@@ -79,7 +81,7 @@ const updatePlato = async (req, res) => {
            p.descripcion = $descripcion,
            p.ciudad = $ciudad`,
       {
-        id: req.params.id,
+        id,
         nombre,
         tipo,
         descripcion,
@@ -97,12 +99,13 @@ const updatePlato = async (req, res) => {
 
 const deletePlato = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
 
     await session.run(
       `MATCH (p:Plato {id: $id})-[r:COMIDA_TIPICA]->(c:Ciudad)
       DELETE r`,
-      { id: req.params.id }
+      { id}
     );
 
 
@@ -117,7 +120,7 @@ const deletePlato = async (req, res) => {
 
     await session.run(
       `MATCH (p:Plato {id: $id}) DELETE p`,
-      { id: req.params.id }
+      { id}
     );
     res.json({ message: 'Plato eliminada' });
   } catch (error) {

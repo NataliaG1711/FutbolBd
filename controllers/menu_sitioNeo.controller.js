@@ -59,7 +59,7 @@ const getAllMenus = async (req, res) => {
 // Actualizar un menú
 const updateMenu = async (req, res) => {
   const { valorTotal, platos } = req.body;
-  const menuId = req.params.id;
+  const id = parseInt(req.params.id);
   const session = driver.session();
 
   try {
@@ -67,13 +67,13 @@ const updateMenu = async (req, res) => {
     await session.run(
       `MATCH (m:Menu {id: $menuId})
        SET m.valorTotal = $valorTotal`,
-      { menuId, valorTotal }
+      { id, valorTotal }
     );
 
     // Eliminar relaciones anteriores con platos
     await session.run(
       `MATCH (m:Menu {id: $menuId})-[r:INCLUYE_PLATO]->() DELETE r`,
-      { menuId }
+      { id }
     );
 
     // Crear nuevas relaciones con los platos actualizados
@@ -81,7 +81,7 @@ const updateMenu = async (req, res) => {
       await session.run(
         `MATCH (p:Plato {id: $platoId}), (m:Menu {id: $menuId})
          CREATE (m)-[:INCLUYE_PLATO]->(p)`,
-        { platoId, menuId }
+        { platoId, id }
       );
     }
 
@@ -96,10 +96,11 @@ const updateMenu = async (req, res) => {
 // Eliminar un menú
 const deleteMenu = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     await session.run(
       `MATCH (m:Menu {id: $id}) DETACH DELETE m`,
-      { id: req.params.id }
+      {id}
     );
     res.json({ message: 'Menú eliminado' });
   } catch (error) {

@@ -49,7 +49,7 @@ const getVisitasByUsuario = async (req, res) => {
 
 // Actualizar una visita (solo propiedades de la relación)
 const updateVisita = async (req, res) => {
-  const { usuarioId, sitioId } = req.params;
+  const { usuarioId, sitioId } = parseInt(req.params);
   const { fecha, hora, favorito } = req.body;
   const session = driver.session();
   try {
@@ -70,7 +70,7 @@ const updateVisita = async (req, res) => {
 
 // Eliminar una visita
 const deleteVisita = async (req, res) => {
-  const { usuarioId, sitioId } = req.params;
+  const { usuarioId, sitioId } = parseInt(req.params);
   const session = driver.session();
   try {
     await session.run(

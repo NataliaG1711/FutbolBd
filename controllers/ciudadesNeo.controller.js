@@ -45,11 +45,12 @@ const getAllCiudades = async (req, res) => {
 
 // Obtener ciudad por nombre
 const getCiudadById = async (req, res) => {
+  const id = parseInt(req.params.id);
   const session = driver.session();
   try {
     const result = await session.run(
       `MATCH (c:Ciudad {id: $id}) RETURN c`,
-      { id: req.params.id }
+      {id}
     );
     if (!result.records.length) {
       return res.status(404).json({ message: 'Ciudad no encontrada' });
@@ -65,14 +66,15 @@ const getCiudadById = async (req, res) => {
 //actualizar ciudad
 const updateCiudad = async (req, res) => {
   const { nombre,poblacion} = req.body;
+  const id = parseInt(req.params.id);
   const session = driver.session();
   try {
     await session.run(
       `MATCH (c:Ciudad {id: $id})
        SET c.nombre = $nombre,
-           c.poblacion = $poblacion,`,
+           c.poblacion = $poblacion`,
       {
-        id: req.params.id,
+        id,
         nombre,
         poblacion
       }
@@ -87,12 +89,13 @@ const updateCiudad = async (req, res) => {
 
 // Eliminar ciudad
 const deleteCiudad = async (req, res) => {
+  const id = parseInt(req.params.id);
   const session = driver.session();
   try {
     await session.run(
       `MATCH (c:Ciudad {id: $id})-[r:PERTENECE_A]->(p:Pais)
-      DELETE r`,
-      { id: req.params.id }
+      DETACH DELETE r`,
+      { id}
     );
 
     //DETACH

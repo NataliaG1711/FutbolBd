@@ -49,10 +49,11 @@ const getAllSitios = async (req, res) => {
 // Obtener sitio por ID
 const getSitioById = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       'MATCH (s:Sitio {id: $id}) RETURN s',
-      { id: req.params.id }
+      { id}
     );
 
     if (!result.records.length) {
@@ -71,6 +72,7 @@ const getSitioById = async (req, res) => {
 const updateSitio = async (req, res) => {
   const { nombre, tipo, descripcion, ubicacion } = req.body;
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     // Actualizar propiedades
     await session.run(
@@ -80,7 +82,7 @@ const updateSitio = async (req, res) => {
            s.descripcion = $descripcion,
            s.ubicacion = $ubicacion`,
       {
-        id: req.params.id,
+        id,
         nombre,
         tipo,
         descripcion,
@@ -91,13 +93,13 @@ const updateSitio = async (req, res) => {
     // Eliminar relación anterior y crear nueva
     await session.run(
       `MATCH (c:Ciudad)-[r:TIENE_SITIO]->(s:Sitio {id: $id}) DELETE r`,
-      { id: req.params.id }
+      { id}
     );
 
     await session.run(
       `MATCH (c:Ciudad {nombre: $ubicacion}), (s:Sitio {id: $id})
        CREATE (c)-[:TIENE_SITIO]->(s)`,
-      { id: req.params.id, ubicacion }
+      { id, ubicacion }
     );
 
     res.json({ message: 'Sitio actualizado' });
@@ -111,10 +113,11 @@ const updateSitio = async (req, res) => {
 // Eliminar sitio
 const deleteSitio = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     await session.run(
       'MATCH (s:Sitio {id: $id}) DETACH DELETE s',
-      { id: req.params.id }
+      { id}
     );
     res.json({ message: 'Sitio eliminado' });
   } catch (error) {

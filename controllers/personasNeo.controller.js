@@ -52,10 +52,11 @@ const getAllPersonas = async (req, res) => {
 
 const getPersonaById = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       `MATCH (p:Persona {id: $id}) RETURN p`,
-      { id: req.params.id }
+      { id}
     );
     if (!result.records.length) {
       return res.status(404).json({ message: 'Persona no encontrada' });
@@ -72,6 +73,7 @@ const getPersonaById = async (req, res) => {
 const updatePersona = async (req, res) => {
   const { nombre, tipo, fecha_nacimiento, lugar_nacimiento } = req.body;
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     await session.run(
       `MATCH (p:Persona {id: $id})
@@ -80,7 +82,7 @@ const updatePersona = async (req, res) => {
            p.fecha_nacimiento = $fecha_nacimiento,
            p.lugar_nacimiento = $lugar_nacimiento`,
       {
-        id: req.params.id,
+        id,
         nombre,
         tipo,
         fecha_nacimiento,
@@ -98,13 +100,14 @@ const updatePersona = async (req, res) => {
 
 const deletePersona = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
 
 
     await session.run(
       `MATCH (p:Persona {id: $id})-[r:NACIO_EN]->(c:Ciudad)
       DELETE r`,
-      { id: req.params.id }
+      { id}
     );
 
 
@@ -119,7 +122,7 @@ const deletePersona = async (req, res) => {
 
     await session.run(
       `MATCH (p:Persona {id: $id}) DELETE p`,
-      { id: req.params.id }
+      { id}
     );
     res.json({ message: 'Persona eliminada' });
   } catch (error) {

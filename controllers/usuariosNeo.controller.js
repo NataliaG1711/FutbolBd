@@ -46,10 +46,11 @@ const getAllUsuarios = async (req, res) => {
 
 const getUsuarioById = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       `MATCH (p:Usuario {id: $id}) RETURN p`,
-      { id: req.params.id }
+      { id}
     );
     if (!result.records.length) {
       return res.status(404).json({ message: 'Usuario no encontrado' });
@@ -66,6 +67,7 @@ const getUsuarioById = async (req, res) => {
 const updateUsuario = async (req, res) => {
   const { nombre, rol, correo, password } = req.body;
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       `MATCH (p:Usuario {id: $id})
@@ -75,7 +77,7 @@ const updateUsuario = async (req, res) => {
            p.password = $password
        RETURN p`,
       {
-        id: req.params.id,
+        id,
         nombre,
         rol,
         correo,
@@ -99,10 +101,11 @@ const updateUsuario = async (req, res) => {
 
 const deleteUsuario = async (req, res) => {
   const session = driver.session();
+  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
       `MATCH (p:Usuario {id: $id}) DETACH DELETE p`,
-      { id: req.params.id }
+      { id}
     );
 
     if (result.summary.counters.updates().nodesDeleted === 0) {
