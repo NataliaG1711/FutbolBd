@@ -1,115 +1,126 @@
-const { response } = require("express");
-const Paises = require("../models/paises");
-const { isValidObjectId } = require("../helpers/mongo-verify");
+const { driver } = require('../database/Neo4jConnection');
 
-const obtenerPaises = async (req, res = response) => {
-  const { limite = 25, desde = 0 } = req.query;
-  const query = {};
-
-  try {
-    const [total, paises] = await Promise.all([
-      Paises.countDocuments(query),
-      Paises.find(query)
-        .skip(Number(desde))
-        .limit(Number(limite))
-    ]);
-
-    res.json({ Ok: true, total, resp: paises });
-  } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
-  }
-};
-
-const obtenerPais = async (req, res = response) => {
-  const { id } = req.params;
-
-  // Validar primero si el ID es un ObjectId válido
-  if (!isValidObjectId(id)) {
-    return res.status(400).json({ Ok: false, resp: 'El ID proporcionado no es válido' });
-  }
-
-  try {
-    const pais = await Paises.findById(id);
-
-    if (!pais) {
-      return res.status(404).json({ Ok: false, resp: 'País no encontrado' });
-    }
-
-    res.json({ Ok: true, resp: pais });
-  } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
-  }
-};
-
-const crearPais = async (req, res = response) => {
+// Crear un país
+const createPais = async (req, res) => {
   const { nombre, continente } = req.body;
-
+  const session = driver.session();
 
   try {
-    const paisExiste = await Paises.findOne({ nombre: nombre.toUpperCase() });
-
-    if (paisExiste) {
-      return res.status(400).json({
-        Ok: false,
-        resp: `El país ${nombre} ya existe`
-      });
-    }
-
-    const data = {
-      nombre: nombre.toUpperCase(),
-      continente: continente.toUpperCase()
-    };
-
-    const nuevoPais = new Paises(data);
-    await nuevoPais.save();
-
-    res.status(201).json({ Ok: true, resp: nuevoPais });
+    await session.run(
+      `CREATE (p:Pais {
+        nombre: $nombre,
+        continente: $continente
+      })`,
+      { nombre, continente }
+    );
+    res.status(201).json({ message: 'País creado' });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
   }
 };
 
-const actualizarPais = async (req, res = response) => {
+// Obtener todos los países
+const getAllPaises = async (req, res) => {
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `MATCH (p:Pais) OPTIONAL MATCH (p)<-[:PERTENECE_A]-(c:Ciudad)
+       RETURN p, collect(c) AS ciudades`
+    );
+
+    const paises = result.records.map(record => {
+      const pais = record.get('p').properties;
+      const ciudades = record.get('ciudades').map(ciudad => ciudad.properties);
+      return { ...pais, ciudades };
+    });
+
+    res.json(paises);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
+  }
+};
+
+// Obtener país por nombre
+const getPaisById = async (req, res) => {
   const { id } = req.params;
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `MATCH (p:Pais {nombre: $id}) OPTIONAL MATCH (p)<-[:PERTENECE_A]-(c:Ciudad)
+       RETURN p, collect(c) AS ciudades`,
+      { id }
+    );
+
+    if (!result.records.length) {
+      return res.status(404).json({ message: 'País no encontrado' });
+    }
+
+    const pais = result.records[0].get('p').properties;
+    const ciudades = result.records[0].get('ciudades').map(ciudad => ciudad.properties);
+
+    res.json({ ...pais, ciudades });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
+  }
+};
+
+// Actualizar país
+const updatePais = async (req, res) => {
   const { nombre, continente } = req.body;
+  const session = driver.session();
 
   try {
-    const data = {};
-    if (nombre) data.nombre = nombre.toUpperCase();
-    if (continente) data.continente = continente.toUpperCase();
-
-    const paisActualizado = await Paises.findByIdAndUpdate(id, data, { new: true });
-
-    if (!paisActualizado) {
-      return res.status(404).json({ Ok: false, resp: 'País no encontrado' });
-    }
-
-    res.json({ Ok: true, resp: paisActualizado });
+    await session.run(
+      `MATCH (p:Pais {nombre: $id})
+       SET p.nombre = $nombre,
+           p.continente = $continente`,
+      { id: req.params.id, nombre, continente }
+    );
+    res.json({ message: 'País actualizado' });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
   }
 };
 
-const borrarPais = async (req, res = response) => {
-  const { id } = req.params;
+// Eliminar país y sus relaciones con ciudades
+const deletePais = async (req, res) => {
+  const session = driver.session();
 
   try {
-    const paisBorrado = await Paises.findByIdAndDelete(id);
+    await session.run(
+      `MATCH (p:Pais {nombre: $id})<-[r:PERTENECE_A]-(c:Ciudad)
+       DELETE r`,
+      { id: req.params.id }
+    );
 
-    if (!paisBorrado) {
-      return res.status(404).json({ Ok: false, resp: 'País no encontrado' });
-    }
+    await session.run(
+      `MATCH (p:Pais {nombre: $id})
+       DELETE p`,
+      { id: req.params.id }
+    );
 
-    res.json({ Ok: true, resp: paisBorrado });
+    res.json({ message: 'País eliminado' });
   } catch (error) {
-    res.status(500).json({ Ok: false, resp: error.message });
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
   }
 };
 
 module.exports = {
-  obtenerPaises,
-  obtenerPais,
-  crearPais,
-  actualizarPais,
-  borrarPais
+  createPais,
+  getAllPaises,
+  getPaisById,
+  updatePais,
+  deletePais
 };

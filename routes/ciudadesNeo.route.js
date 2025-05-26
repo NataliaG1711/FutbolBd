@@ -3,7 +3,7 @@ require('../controllers/ciudadesNeo.controller');
 
 const {validarCampos} = require('../middlewares/validar-campos');
 const { existePaisPorIdNeo} = require('../helpers/db-validators');
-//const { check } = require('express-validator');
+const { check } = require('express-validator');
 
 
 const { Router } = require('express');

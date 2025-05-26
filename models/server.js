@@ -35,9 +35,15 @@ class Server {
 
         this.pathsNeo = {
             //Ajusto la url para la outorizacion por login
+            usuarios: '/api/usuariosNeo',
             personas: '/api/personasNeo',
             paises: '/api/paisesNeo',
             ciudades: '/api/ciudadesNeo',
+            platos: '/api/platosNeo',
+            sitios: '/api/sitiosNeo',
+            menu: '/api/menuNeo',
+            tags: '/api/tagsNeo'
+            
             //usuarios: '/api/usuarios',
             //heroes:'/api/heroes',            
             //multimedias:'/api/multimedias',
@@ -141,7 +147,7 @@ class Server {
 
         });
         */
-                   
+            /*       
         //this.app.use(this.pathsMySql.auth, require('../routes/MySqlAuth'));
         this.app.use(this.pathsMySql.heroes, require('../routes/heroes.route'));
         this.app.use(this.pathsMongo.usuarios, require('../routes/mongoUsuario.route'));
@@ -153,11 +159,16 @@ class Server {
 
         //Activo la ruta del login
         this.app.use(this.pathsMongo.auth, require('../routes/auth.route'));
-
+*/
         //Neo4j
         this.app.use(this.pathsNeo.personas, require('../routes/personasNeo.route'))
         this.app.use(this.pathsNeo.paises, require('../routes/paisesNeo.route'))
         this.app.use(this.pathsNeo.ciudades, require('../routes/ciudadesNeo.route'))
+        this.app.use(this.pathsNeo.sitios, require('../routes/sitiosNeo.route'))
+        this.app.use(this.pathsNeo.platos, require('../routes/platosNeo.route'))
+        this.app.use(this.pathsNeo.menu, require('../routes/menuNeo.route'))
+        //this.app.use(this.pathsNeo.tags, require('../routes/tagsNeo.route'))
+        this.app.use(this.pathsNeo.usuarios, require('../routes/usuariosNeo.route'));
     }
     
 

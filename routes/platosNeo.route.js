@@ -3,7 +3,7 @@ require('../controllers/platosNeo.controller');
 
 const {validarCampos} = require('../middlewares/validar-campos');
 const { existeCiudadPorIdNeo} = require('../helpers/db-validators');
-//const { check } = require('express-validator');
+const { check } = require('express-validator');
 
 
 const { Router } = require('express');

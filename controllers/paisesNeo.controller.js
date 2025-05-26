@@ -1,28 +1,19 @@
 const { driver } = require('../database/Neo4jConnection');
 
-// Crear una ciudad y relacionarla con un país
-const createCiudad = async (req, res) => {
-  const { id, nombre, poblacion, pais } = req.body;
+// Crear un país
+const createPais = async (req, res) => {
+  const { nombre, continente } = req.body;
   const session = driver.session();
 
   try {
     await session.run(
-      `CREATE (c:Ciudad {
-        id: $id,
+      `CREATE (p:Pais {
         nombre: $nombre,
-        poblacion: $poblacion,
-        pais: $pais
+        continente: $continente
       })`,
-      { id, nombre, poblacion, pais }
+      { nombre, continente }
     );
-
-    await session.run(
-      `MATCH (c:Ciudad {id: $id}), (p:Pais {nombre: $pais})
-       CREATE (c)-[:PERTENECE_A]->(p)`,
-      { id, pais }
-    );
-
-    res.status(201).json({ message: 'Ciudad creada exitosamente' });
+    res.status(201).json({ message: 'País creado' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -30,36 +21,50 @@ const createCiudad = async (req, res) => {
   }
 };
 
-// Obtener todas las ciudades
-const getAllCiudades = async (req, res) => {
-  const session = driver.session();
-
-  try {
-    const result = await session.run(`MATCH (c:Ciudad) RETURN c`);
-    const ciudades = result.records.map(record => record.get('c').properties);
-    res.json(ciudades);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  } finally {
-    await session.close();
-  }
-};
-
-// Obtener ciudad por nombre
-const getCiudadById = async (req, res) => {
+// Obtener todos los países
+const getAllPaises = async (req, res) => {
   const session = driver.session();
 
   try {
     const result = await session.run(
-      `MATCH (c:Ciudad {id: $id}) RETURN c`,
-      { id: req.params.id }
+      `MATCH (p:Pais) OPTIONAL MATCH (p)<-[:PERTENECE_A]-(c:Ciudad)
+       RETURN p, collect(c) AS ciudades`
+    );
+
+    const paises = result.records.map(record => {
+      const pais = record.get('p').properties;
+      const ciudades = record.get('ciudades').map(ciudad => ciudad.properties);
+      return { ...pais, ciudades };
+    });
+
+    res.json(paises);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  } finally {
+    await session.close();
+  }
+};
+
+// Obtener país por nombre
+const getPaisById = async (req, res) => {
+  const { id } = req.params;
+  const session = driver.session();
+
+  try {
+    const result = await session.run(
+      `MATCH (p:Pais {nombre: $id}) OPTIONAL MATCH (p)<-[:PERTENECE_A]-(c:Ciudad)
+       RETURN p, collect(c) AS ciudades`,
+      { id }
     );
 
     if (!result.records.length) {
-      return res.status(404).json({ message: 'Ciudad no encontrada' });
+      return res.status(404).json({ message: 'País no encontrado' });
     }
 
-    res.json(result.records[0].get('c').properties);
+    const pais = result.records[0].get('p').properties;
+    const ciudades = result.records[0].get('ciudades').map(ciudad => ciudad.properties);
+
+    res.json({ ...pais, ciudades });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -67,24 +72,19 @@ const getCiudadById = async (req, res) => {
   }
 };
 
-// Actualizar ciudad por nombre
-const updateCiudad = async (req, res) => {
-  const { nombre,poblacion } = req.body;
+// Actualizar país
+const updatePais = async (req, res) => {
+  const { nombre, continente } = req.body;
   const session = driver.session();
 
   try {
-    // Actualiza atributos
     await session.run(
-      `MATCH (c:Ciudad {id: $id})
-        SET c.poblacion = $poblacion,
-            c.nombre = $nombre`,
-      {
-        id: req.params.id,
-        nombre,
-        poblacion
-      }
+      `MATCH (p:Pais {nombre: $id})
+       SET p.nombre = $nombre,
+           p.continente = $continente`,
+      { id: req.params.id, nombre, continente }
     );
-    res.json({ message: 'Ciudad actualizada' });
+    res.json({ message: 'País actualizado' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -92,17 +92,24 @@ const updateCiudad = async (req, res) => {
   }
 };
 
-// Eliminar ciudad
-const deleteCiudad = async (req, res) => {
+// Eliminar país y sus relaciones con ciudades
+const deletePais = async (req, res) => {
   const session = driver.session();
 
   try {
     await session.run(
-      `MATCH (c:Ciudad {id: $id}) DETACH DELETE c`,
+      `MATCH (p:Pais {nombre: $id})<-[r:PERTENECE_A]-(c:Ciudad)
+       DELETE r`,
       { id: req.params.id }
     );
 
-    res.json({ message: 'Ciudad eliminada exitosamente' });
+    await session.run(
+      `MATCH (p:Pais {nombre: $id})
+       DELETE p`,
+      { id: req.params.id }
+    );
+
+    res.json({ message: 'País eliminado' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -111,9 +118,9 @@ const deleteCiudad = async (req, res) => {
 };
 
 module.exports = {
-  createCiudad,
-  getAllCiudades,
-  getCiudadById,
-  updateCiudad,
-  deleteCiudad
+  createPais,
+  getAllPaises,
+  getPaisById,
+  updatePais,
+  deletePais
 };
