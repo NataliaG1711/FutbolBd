@@ -1,7 +1,5 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
-
-const { validarJWT } = require('../middlewares/validar-jwt');
 const { validarCampos } = require('../middlewares/validar-campos');
 
 const {
@@ -24,13 +22,13 @@ router.get('/', getAllPaises);
 
 // Obtener un país por nombre (o id si usas uno)
 router.get('/:id', [
-  check('id', 'El nombre del país es obligatorio').notEmpty(),
+  check('id', 'el id es obligatorio').notEmpty(),
   validarCampos
 ], getPaisById);
 
 // Crear país - privado (requiere token)
 router.post('/', [
-  validarJWT,
+  check('id', 'el id es obligatorio').notEmpty(),
   check('nombre', 'El nombre del país es obligatorio').notEmpty(),
   check('continente', 'El continente es obligatorio').notEmpty(),
   validarCampos
@@ -38,7 +36,6 @@ router.post('/', [
 
 // Actualizar país - privado
 router.put('/:id', [
-  validarJWT,
   check('id', 'El identificador del país es obligatorio').notEmpty(),
   check('nombre', 'El nombre es obligatorio').notEmpty(),
   check('continente', 'El continente es obligatorio').notEmpty(),
@@ -47,7 +44,6 @@ router.put('/:id', [
 
 // Eliminar país - privado
 router.delete('/:id', [
-  validarJWT,
   check('id', 'El identificador del país es obligatorio').notEmpty(),
   validarCampos
 ], deletePais);
