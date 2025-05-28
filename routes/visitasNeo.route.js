@@ -3,17 +3,18 @@ const {
   createVisita,
   getVisitasByUsuario,
   updateVisita,
-  deleteVisita
-} = require('../controllers/visitas.controller');
+  deleteVisita,
+  createRutaPlanificadaConFavoritos
+} = require('../controllers/visitasNeo.controller');
 
 const { validarCampos } = require('../middlewares/validar-campos');
 const { validarJWT } = require('../middlewares/validar-jwt');
-const {validarRolAdmin} = require('../middlewares/validar-rol');
+const { validarRolAdmin } = require('../middlewares/validar-rol');
 const router = Router();
 
 // Crear una visita
 router.post('/',
-  //validarJWT, #CREO QUE LA VISITA PUEDE TODO EL MUNDO ENTONCES POR ESO NO SE VALIDA EL JWT NI EL ROL
+  //validarJWT, // Puede ser público
   //validarRolAdmin,
   validarCampos,
   createVisita
@@ -33,6 +34,13 @@ router.put('/:usuarioId/:sitioId',
 // Eliminar una visita
 router.delete('/:usuarioId/:sitioId',
   deleteVisita
+);
+
+// Crear ruta planificada solo con sitios favoritos y horarios nuevos
+router.post('/ruta-planificada',
+  //validarJWT, // Puedes activar si quieres proteger esta ruta
+  validarCampos,
+  createRutaPlanificadaConFavoritos
 );
 
 module.exports = router;

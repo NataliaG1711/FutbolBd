@@ -15,13 +15,15 @@ class Server {
             //Ajusto la url para la outorizacion por login
             usuarios: '/api/usuariosNeo',
             personas: '/api/personasNeo',
+            famosos: '/api/famososNeo',
             paises: '/api/paisesNeo',
             ciudades: '/api/ciudadesNeo',
             platos: '/api/platosNeo',
             sitios: '/api/sitiosNeo',
             menu: '/api/menuNeo',
             tags: '/api/tagsNeo',
-            authNeo: '/api/authNeo'
+            authNeo: '/api/authNeo',
+            visitas: '/api/visitasNeo',
             
             //usuarios: '/api/usuarios',
             //heroes:'/api/heroes',            
@@ -72,6 +74,8 @@ class Server {
         //this.app.use(this.pathsNeo.tags, require('../routes/tagsNeo.route'))
         this.app.use(this.pathsNeo.usuarios, require('../routes/usuariosNeo.route'));
         this.app.use(this.pathsNeo.authNeo, require('../routes/authNeo.route'))
+        this.app.use(this.pathsNeo.famosos, require('../routes/famososNeo.route'));
+        this.app.use(this.pathsNeo.visitas, require('../routes/visitasNeo.route'));
     }
     
 

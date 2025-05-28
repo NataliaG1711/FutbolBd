@@ -3,7 +3,7 @@ const {driver} = require('../database/Neo4jConnection');
 
 
 const createPersona = async (req, res) => {
-  const { id, nombre, tipo, fecha_nacimiento, lugar_nacimiento } = req.body;
+  const { id, nombre, profesion, fecha_nacimiento, lugar_nacimiento } = req.body;
   const session = driver.session();
   try {
    
@@ -12,11 +12,11 @@ const createPersona = async (req, res) => {
       `CREATE (p:Persona {
         id: $id,
         nombre: $nombre,
-        tipo: $tipo,
+        profesion: $profesion,
         fecha_nacimiento: $fecha_nacimiento,
         lugar_nacimiento: $lugar_nacimiento
       })`,
-      { id, nombre, tipo, fecha_nacimiento, lugar_nacimiento }
+      { id, nombre, profesion, fecha_nacimiento, lugar_nacimiento }
     );
 
 
@@ -71,20 +71,20 @@ const getPersonaById = async (req, res) => {
 
 
 const updatePersona = async (req, res) => {
-  const { nombre, tipo, fecha_nacimiento, lugar_nacimiento } = req.body;
+  const { nombre, profesion, fecha_nacimiento, lugar_nacimiento } = req.body;
   const session = driver.session();
   const id = parseInt(req.params.id);
   try {
     await session.run(
       `MATCH (p:Persona {id: $id})
        SET p.nombre = $nombre,
-           p.tipo = $tipo,
+           p.profesion = $profesion,
            p.fecha_nacimiento = $fecha_nacimiento,
            p.lugar_nacimiento = $lugar_nacimiento`,
       {
         id,
         nombre,
-        tipo,
+        profesion,
         fecha_nacimiento,
         lugar_nacimiento
       }
