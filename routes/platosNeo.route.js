@@ -2,9 +2,10 @@ require('../controllers/platosNeo.controller');
 
 
 const {validarCampos} = require('../middlewares/validar-campos');
-const { existeCiudadPorIdNeo} = require('../helpers/db-validators');
+const { existeSitioPorNombreNeo} = require('../helpers/db-validators');
 const { check } = require('express-validator');
-
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 
 const { Router } = require('express');
 const { createPlato,
@@ -19,7 +20,9 @@ const router = Router();
 
 
 router.post('/',
-    check('IdCiudad').custom( existeCiudadPorIdNeo ),
+    validarJWT,
+    //validarRolAdmin,
+    check('sitio').custom( existeSitioPorNombreNeo ),
     validarCampos,
     createPlato);
 

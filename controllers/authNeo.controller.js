@@ -10,9 +10,10 @@ const login = async (req, res = response) => {
   try {
     // Buscar usuario por correo
     const result = await session.run(
-      `MATCH (u:Usuario {correo: $correo}) RETURN u LIMIT 1`,
+      `MATCH (u:Usuario {correo: $correo}) RETURN u LIMIT 1;`,
       { correo }
     );
+    
 
     if (result.records.length === 0) {
       return res.status(400).json({
@@ -23,14 +24,8 @@ const login = async (req, res = response) => {
 
     const usuarioNode = result.records[0].get("u");
     const usuario = usuarioNode.properties;
-
-    // Verificar estado
-    if (usuario.estado === false || usuario.estado === "false") {
-      return res.status(400).json({
-        ok: false,
-        msg: "Usuario / Password no son correctos - estado: false",
-      });
-    }
+    
+    console.log("Usuario encontrado:", usuario); // Debug
 
     // Verificar contraseña
     const validaPassword = bcryptjs.compareSync(password, usuario.password);
@@ -41,13 +36,27 @@ const login = async (req, res = response) => {
       });
     }
 
+    // Debug: Verificar que el ID existe
+    if (!usuario.id) {
+      return res.status(500).json({
+        ok: false,
+        msg: "El usuario no tiene ID",
+        usuario
+      });
+    }
+
     // Generar JWT
     const token = await generarJWT(usuario.id);
 
     res.json({
       ok: true,
       msg: "Login ok",
-      usuario,
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        correo: usuario.correo,
+        rol: usuario.rol
+      },
       token,
     });
   } catch (error) {

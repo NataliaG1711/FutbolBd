@@ -1,9 +1,6 @@
 const express = require('express')
 const cors = require('cors')
 
-const { bdmysql } = require('../database/MySqlConnection');
-
-const { dbConnectionMongo } = require('../database/MongoConnection');
 
 const {dbConnectionNeo4j} = require('../database/Neo4jConnection')
 
@@ -14,25 +11,6 @@ class Server {
         this.app = express();
         this.port = process.env.PORT;
 
-        
-        this.pathsMySql = {
-            //auth: '/api/auth',
-            heroes: '/api/heroes',
-            peliculas: '/api/peliculas',
-        }
-            
-        this.pathsMongo = {
-
-            //Ajusto la url para la outorizacion por login
-            auth: '/api/auth',
-            usuarios: '/api/usuarios',
-            heroes: '/api/heroesmongo',
-            futbolistas: '/api/futbolistas',
-            equipos: '/api/equipos',
-            paises: '/api/paises',
-            contrataciones: '/api/contrataciones'
-        }
-
         this.pathsNeo = {
             //Ajusto la url para la outorizacion por login
             usuarios: '/api/usuariosNeo',
@@ -42,7 +20,8 @@ class Server {
             platos: '/api/platosNeo',
             sitios: '/api/sitiosNeo',
             menu: '/api/menuNeo',
-            tags: '/api/tagsNeo'
+            tags: '/api/tagsNeo',
+            authNeo: '/api/authNeo'
             
             //usuarios: '/api/usuarios',
             //heroes:'/api/heroes',            
@@ -60,13 +39,7 @@ class Server {
             res.send('Hola Mundo a todos... como estan...')
         })
         */    
-        
-
-        //Aqui me conecto a la BD
-        this.dbConnection();
-
-        //Aqui me conecto a MongoDB
-        this.conectarBDMongo();
+    
 
         //Aqui me conecto a Neo
         this.conectarNeo4j();
@@ -82,20 +55,6 @@ class Server {
     }
 
 
-    
-    async dbConnection() {
-        try {
-            await bdmysql.authenticate();
-            console.log('Connection OK a MySQL.');
-        } catch (error) {
-            console.error('No se pudo Conectar a la BD MySQL', error);
-        }
-    }
-    
-    async conectarBDMongo(){
-        await dbConnectionMongo();
-    }
-
     async conectarNeo4j(){
         await dbConnectionNeo4j();
     }
@@ -103,63 +62,6 @@ class Server {
     
     routes() {
 
-
-        /*
-        this.app.get('/api', (req, res) => {
-            //res.send('Hello World')
-            res.json({ok:true,
-                msg:'get API'
-               })
-
-        });
-
-        this.app.post('/api', (req, res) => {
-            //res.send('Hello World')
-            res.status(201).json({ok:true,
-                msg:'post API'
-               })
-
-        });
-
-        this.app.put('/api', (req, res) => {
-            //res.send('Hello World')
-            res.json({ok:true,
-                msg:'put API'
-               })
-
-        });
-
-        this.app.delete('/api', (req, res) => {
-            //res.send('Hello World')
-            res.json({ok:true,
-                msg:'delete API'
-               })
-
-        });
-
-        this.app.patch('/api', (req, res) => {
-            //res.send('Hello World')
-            res.json({
-                ok:true,
-                msg:'patch API',
-                status:'Status OK...'
-               })
-
-        });
-        */
-            /*       
-        //this.app.use(this.pathsMySql.auth, require('../routes/MySqlAuth'));
-        this.app.use(this.pathsMySql.heroes, require('../routes/heroes.route'));
-        this.app.use(this.pathsMongo.usuarios, require('../routes/mongoUsuario.route'));
-        this.app.use(this.pathsMongo.heroes, require('../routes/mongoHeroes.routes')); 
-        this.app.use(this.pathsMongo.futbolistas, require('../routes/futbolistas.route'));
-        this.app.use(this.pathsMongo.equipos, require('../routes/equipos.route'));
-        this.app.use(this.pathsMongo.paises, require('../routes/paises.route'));
-        this.app.use(this.pathsMongo.contrataciones, require('../routes/contrataciones.route'))
-
-        //Activo la ruta del login
-        this.app.use(this.pathsMongo.auth, require('../routes/auth.route'));
-*/
         //Neo4j
         this.app.use(this.pathsNeo.personas, require('../routes/personasNeo.route'))
         this.app.use(this.pathsNeo.paises, require('../routes/paisesNeo.route'))
@@ -169,6 +71,7 @@ class Server {
         this.app.use(this.pathsNeo.menu, require('../routes/menuNeo.route'))
         //this.app.use(this.pathsNeo.tags, require('../routes/tagsNeo.route'))
         this.app.use(this.pathsNeo.usuarios, require('../routes/usuariosNeo.route'));
+        this.app.use(this.pathsNeo.authNeo, require('../routes/authNeo.route'))
     }
     
 

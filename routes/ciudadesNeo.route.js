@@ -2,8 +2,10 @@ require('../controllers/ciudadesNeo.controller');
 
 
 const {validarCampos} = require('../middlewares/validar-campos');
-const { existePaisPorIdNeo} = require('../helpers/db-validators');
+const { existePaisPorNombreNeo} = require('../helpers/db-validators');
 const { check } = require('express-validator');
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 
 
 const { Router } = require('express');
@@ -15,11 +17,14 @@ const { createCiudad,
     } = require('../controllers/ciudadesNeo.controller');
 
 
+
 const router = Router();
 
 
 router.post('/',
-    check('IdPais').custom( existePaisPorIdNeo ),
+    check('pais').custom( existePaisPorNombreNeo ),
+    validarJWT,
+    //validarRolAdmin,
     validarCampos,
     createCiudad);
 

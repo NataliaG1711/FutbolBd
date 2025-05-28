@@ -1,10 +1,9 @@
 require('../controllers/personasNeo.controller');
-
-
 const {validarCampos} = require('../middlewares/validar-campos');
-const { existeCiudadPorIdNeo} = require('../helpers/db-validators');
+const { existeCiudadPorNombreNeo} = require('../helpers/db-validators');
 const { check } = require('express-validator');
-
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 
 const { Router } = require('express');
 const { createPersona,
@@ -19,7 +18,9 @@ const router = Router();
 
 
 router.post('/',
-    check('IdCiudad').custom( existeCiudadPorIdNeo ),
+    validarJWT,
+    //validarRolAdmin,
+    check('ciudad').custom( existeCiudadPorNombreNeo ),
     validarCampos,
     createPersona);
 

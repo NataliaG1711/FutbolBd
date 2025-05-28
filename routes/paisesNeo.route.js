@@ -1,6 +1,8 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { validarCampos } = require('../middlewares/validar-campos');
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 
 const {
   createPais,
@@ -28,6 +30,8 @@ router.get('/:id', [
 
 // Crear país - privado (requiere token)
 router.post('/', [
+  validarJWT,
+  validarRolAdmin,
   check('id', 'el id es obligatorio').notEmpty(),
   check('nombre', 'El nombre del país es obligatorio').notEmpty(),
   check('continente', 'El continente es obligatorio').notEmpty(),

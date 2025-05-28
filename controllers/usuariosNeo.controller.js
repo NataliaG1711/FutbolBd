@@ -1,29 +1,61 @@
 // controllers/UsuarioController.js
 const {driver} = require('../database/Neo4jConnection');
+const {generarJWT} = require('../helpers/generar-jwt')
+const bcryptjs = require('bcryptjs');
 
 
 const createUsuario = async (req, res) => {
   const { id, nombre, rol, correo, password } = req.body;
   const session = driver.session();
+
   try {
-   
-    //Crea la Usuario
-    await session.run(
-      `CREATE (p:Usuario {
+    // Verificar si el correo ya existe
+    const result = await session.run(
+      `MATCH (u:Usuario {correo: $correo}) RETURN u`,
+      { correo }
+    );
+
+    if (result.records.length > 0) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'El correo ya está registrado...',
+      });
+    }
+
+    // Encriptar contraseña
+    const salt = bcryptjs.genSaltSync();
+    const hashedPassword = bcryptjs.hashSync(password, salt);
+
+    // Crear el usuario
+    const createResult = await session.run(
+      `CREATE (u:Usuario {
         id: $id,
         nombre: $nombre,
         rol: $rol,
         correo: $correo,
         password: $password
-      })`,
-      { id, nombre, rol, correo, password }
+      }) RETURN u`,
+      {
+        id,
+        nombre,
+        rol,
+        correo,
+        password: hashedPassword,
+      }
     );
-
-
- 
-    res.status(201).json({ message: 'Usuario creado' });
+    
+    const usuario = createResult.records[0].get('u').properties;
+    
+    res.status(201).json({
+      ok: true,
+      usuario,
+      msg: 'Usuario creado correctamente'
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      ok: false,
+      error: error.message 
+    });
   } finally {
     await session.close();
   }

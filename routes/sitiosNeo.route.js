@@ -1,5 +1,8 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
+const {existeCiudadPorNombreNeo} = require('../helpers/db-validators')
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 
 const {
   createSitio,
@@ -25,6 +28,9 @@ router.get('/:id', [
 
 // Crear sitio
 router.post('/', [
+  validarJWT,
+  //validarRolAdmin,
+  check('ubicacion').custom( existeCiudadPorNombreNeo ),
   check('id', 'El id es obligatorio').not().isEmpty(),
   check('nombre', 'El nombre es obligatorio').not().isEmpty(),
   check('tipo', 'El tipo es obligatorio').not().isEmpty(),

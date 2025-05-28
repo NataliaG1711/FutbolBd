@@ -7,11 +7,14 @@ const {
 } = require('../controllers/visitas.controller');
 
 const { validarCampos } = require('../middlewares/validar-campos');
-
+const { validarJWT } = require('../middlewares/validar-jwt');
+const {validarRolAdmin} = require('../middlewares/validar-rol');
 const router = Router();
 
 // Crear una visita
 router.post('/',
+  validarJWT,
+  validarRolAdmin,
   validarCampos,
   createVisita
 );
