@@ -2,19 +2,9 @@ const { driver } = require('../database/Neo4jConnection');
 
 // Crear una visita
 const createVisita = async (req, res) => {
-  const { id, usuario, sitio, fecha, hora, favorito } = req.body;
+  const { usuario, sitio, fecha, hora, favorito } = req.body;
   const session = driver.session();
   try {
-    await session.run(
-      `CREATE (v:Visita {
-        id: $id,
-        usuario: $usuario,
-        sitio: $sitio
-      })`,
-      { id, usuario, sitio }
-    );
-
-    // Crear relación VISITO con propiedades
     await session.run(
       `MATCH (u:Usuario {nombre: $usuario}), (s:Sitio {nombre: $sitio})
        CREATE (u)-[:VISITO {
@@ -24,8 +14,7 @@ const createVisita = async (req, res) => {
        }]->(s)`,
       { usuario, sitio, fecha, hora, favorito }
     );
-
-    res.status(201).json({ message: 'Visita registrada' });
+    res.status(201).json({ message: 'Visita registrada correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -56,17 +45,21 @@ const getVisitasByUsuario = async (req, res) => {
   }
 };
 
-const getVisitaById = async (req, res) => {
+// Obtener una visita específica por nombre de usuario y nombre del sitio
+const getVisita = async (req, res) => {
+  const { usuario, sitio } = req.params;
   const session = driver.session();
-  const id = parseInt(req.params.id);
   try {
     const result = await session.run(
-      `MATCH (v:Visita {id: $id}) RETURN v`,
-      { id }
+      `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO]->(s:Sitio {nombre: $sitio})
+       RETURN v`,
+      { usuario, sitio }
     );
-    if (!result.records.length) {
+
+    if (result.records.length === 0) {
       return res.status(404).json({ message: 'Visita no encontrada' });
     }
+
     res.json(result.records[0].get('v').properties);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -75,20 +68,26 @@ const getVisitaById = async (req, res) => {
   }
 };
 
-// Actualizar una visita (solo propiedades de la relación)
+// Actualizar una visita
 const updateVisita = async (req, res) => {
-  const { usuarioId, sitioId } = req.params;
+  const { usuario, sitio } = req.params;
   const { fecha, hora, favorito } = req.body;
   const session = driver.session();
   try {
-    await session.run(
-      `MATCH (u:Usuario {id: $usuarioId})-[v:VISITO]->(s:Sitio {id: $sitioId})
+    const result = await session.run(
+      `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO]->(s:Sitio {nombre: $sitio})
        SET v.fecha = $fecha,
            v.hora = $hora,
-           v.favorito = $favorito`,
-      { usuarioId, sitioId, fecha, hora, favorito }
+           v.favorito = $favorito
+       RETURN v`,
+      { usuario, sitio, fecha, hora, favorito }
     );
-    res.json({ message: 'Visita actualizada' });
+
+    if (result.records.length === 0) {
+      return res.status(404).json({ message: 'Visita no encontrada para actualizar' });
+    }
+
+    res.json({ message: 'Visita actualizada correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -98,15 +97,16 @@ const updateVisita = async (req, res) => {
 
 // Eliminar una visita
 const deleteVisita = async (req, res) => {
-  const { usuarioId, sitioId } = req.params;
+  const { usuario, sitio } = req.params;
   const session = driver.session();
   try {
-    await session.run(
-      `MATCH (u:Usuario {id: $usuarioId})-[v:VISITO]->(s:Sitio {id: $sitioId})
+    const result = await session.run(
+      `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO]->(s:Sitio {nombre: $sitio})
        DELETE v`,
-      { usuarioId, sitioId }
+      { usuario, sitio }
     );
-    res.json({ message: 'Visita eliminada' });
+
+    res.json({ message: 'Visita eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
@@ -117,24 +117,17 @@ const deleteVisita = async (req, res) => {
 // Crear ruta planificada solo con sitios favoritos y horarios nuevos
 const createRutaPlanificadaConFavoritos = async (req, res) => {
   const { usuario, fecha, horarios } = req.body;
-  // horarios = [{ sitio: "Sitio 1", hora_inicio: "14:00", hora_fin: "15:00" }, ...]
-
   const session = driver.session();
   try {
     for (const h of horarios) {
-      // Verificar si el sitio es favorito
       const checkFav = await session.run(
         `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO {favorito: true}]->(s:Sitio {nombre: $sitio})
          RETURN s`,
         { usuario, sitio: h.sitio }
       );
 
-      if (checkFav.records.length === 0) {
-        // No es favorito, no agregarlo a la ruta planificada
-        continue;
-      }
+      if (checkFav.records.length === 0) continue;
 
-      // Crear relación VISITARA con el horario planificado
       await session.run(
         `MATCH (u:Usuario {nombre: $usuario}), (s:Sitio {nombre: $sitio})
          CREATE (u)-[:VISITARA {
@@ -163,7 +156,7 @@ const createRutaPlanificadaConFavoritos = async (req, res) => {
 module.exports = {
   createVisita,
   getVisitasByUsuario,
-  getVisitaById,
+  getVisita,
   updateVisita,
   deleteVisita,
   createRutaPlanificadaConFavoritos

@@ -94,7 +94,7 @@ const deleteCiudad = async (req, res) => {
   try {
     await session.run(
       `MATCH (c:Ciudad {id: $id})-[r:PERTENECE_A]->(p:Pais)
-      DETACH DELETE r`,
+      DELETE r`,
       { id}
     );
 
