@@ -13,8 +13,8 @@ const router = Router();
 
 // Crear una visita
 router.post('/',
-  validarJWT,
-  validarRolAdmin,
+  //validarJWT, #CREO QUE LA VISITA PUEDE TODO EL MUNDO ENTONCES POR ESO NO SE VALIDA EL JWT NI EL ROL
+  //validarRolAdmin,
   validarCampos,
   createVisita
 );

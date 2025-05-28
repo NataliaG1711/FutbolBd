@@ -15,9 +15,9 @@ const {
 const router = Router();
 
 router.post('/',
-  existeSitioPorNombreNeo,
   validarJWT,
-  //validarRolAdmin,
+  validarRolAdmin,
+  existeSitioPorNombreNeo,
   validarCampos,
   createMenu
 );

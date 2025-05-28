@@ -21,7 +21,7 @@ const router = Router();
 
 router.post('/',
     validarJWT,
-    //validarRolAdmin,
+    validarRolAdmin,
     check('sitio').custom( existeSitioPorNombreNeo ),
     validarCampos,
     createPlato);

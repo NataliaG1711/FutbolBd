@@ -22,9 +22,9 @@ const router = Router();
 
 
 router.post('/',
-    check('pais').custom( existePaisPorNombreNeo ),
     validarJWT,
-    //validarRolAdmin,
+    validarRolAdmin,
+    check('pais').custom( existePaisPorNombreNeo ),
     validarCampos,
     createCiudad);
 

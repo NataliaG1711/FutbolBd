@@ -29,7 +29,7 @@ router.get('/:id', [
 // Crear sitio
 router.post('/', [
   validarJWT,
-  //validarRolAdmin,
+  validarRolAdmin,
   check('ubicacion').custom( existeCiudadPorNombreNeo ),
   check('id', 'El id es obligatorio').not().isEmpty(),
   check('nombre', 'El nombre es obligatorio').not().isEmpty(),
