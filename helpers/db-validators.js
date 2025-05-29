@@ -25,11 +25,11 @@ const existeCiudadPorNombreNeo = async (nombre) => {
   const session = driver.session();
   try{
     const result = await session.run(
-      'MATCH (c:Ciudad {nombre: $nombre} RETURN c',
+      'MATCH (c:Ciudad {nombre: $nombre}) RETURN c',
       {nombre}
     );
     if (!result.records.length){
-      throw new Error(`El país con nombre ${nombre} no existe `);
+      throw new Error(`La ciudad con nombre ${nombre} no existe `);
     }
   } catch (error){
     throw new Error(`Error: ${error.message}`)
@@ -42,7 +42,7 @@ const existeSitioPorNombreNeo = async (nombre) => {
   const session = driver.session();
   try{
     const result = await session.run(
-      'MATCH (s:Sitio {nombre: $nombre} RETURN s',
+      'MATCH (s:Sitio {nombre: $nombre}) RETURN s',
       {nombre}
     );
     if (!result.records.length){

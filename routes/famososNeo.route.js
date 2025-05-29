@@ -19,7 +19,7 @@ const router = Router();
 router.post('/',
   validarJWT,
   validarRolAdmin,
-  check('ciudad').custom(existeCiudadPorNombreNeo),
+  check('lugar_nacimiento').custom(existeCiudadPorNombreNeo),
   validarCampos,
   createFamoso
 );
