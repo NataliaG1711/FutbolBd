@@ -5,7 +5,7 @@ const {
   getTagById,
   updateTag,
   deleteTag
-} = require('../controllers/tagsNeoController');
+} = require('../controllers/tagsNeo.controller');
 
 const { validarCampos } = require('../middlewares/validar-campos');
 // const { validarJWT } = require('../middlewares/validar-jwt');

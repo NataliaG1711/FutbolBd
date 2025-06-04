@@ -116,42 +116,81 @@ const deleteVisita = async (req, res) => {
 
 // Crear ruta planificada solo con sitios favoritos y horarios nuevos
 const createRutaPlanificadaConFavoritos = async (req, res) => {
-  const { usuario, fecha, horarios } = req.body;
+  const { usuario, fecha } = req.body;
   const session = driver.session();
+
   try {
-    for (const h of horarios) {
-      const checkFav = await session.run(
-        `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO {favorito: true}]->(s:Sitio {nombre: $sitio})
-         RETURN s`,
-        { usuario, sitio: h.sitio }
-      );
-
-      if (checkFav.records.length === 0) continue;
-
-      await session.run(
-        `MATCH (u:Usuario {nombre: $usuario}), (s:Sitio {nombre: $sitio})
-         CREATE (u)-[:VISITARA {
-           fecha: $fecha,
-           hora_inicio: $hora_inicio,
-           hora_fin: $hora_fin
-         }]->(s)`,
-        {
-          usuario,
-          sitio: h.sitio,
-          fecha,
-          hora_inicio: h.hora_inicio,
-          hora_fin: h.hora_fin
-        }
-      );
+    // Validar body
+    if (!usuario || !fecha) {
+      return res.status(400).json({ error: 'Faltan usuario o fecha' });
     }
 
-    res.status(201).json({ message: 'Ruta planificada creada con sitios favoritos' });
+    // Obtener todos los sitios favoritos del usuario
+    const result = await session.run(
+      `MATCH (u:Usuario {nombre: $usuario})-[v:VISITO {favorito: true}]->(s:Sitio)
+       RETURN s.nombre AS sitio`,
+      { usuario }
+    );
+
+    const favoritos = result.records.map(record => record.get('sitio'));
+    if (favoritos.length === 0) {
+      return res.status(404).json({ error: 'No se encontraron sitios favoritos para el usuario' });
+    }
+
+    // Generar horarios automáticamente (ejemplo: 1 hora por sitio, empezando a las 09:00)
+    const horarios = [];
+    let currentTime = 9 * 60; // 09:00 en minutos
+    const durationPerSite = 60; // 1 hora por sitio en minutos
+
+    for (const sitio of favoritos) {
+      const horaInicio = formatTime(currentTime);
+      const horaFin = formatTime(currentTime + durationPerSite);
+      horarios.push({ sitio, hora_inicio: horaInicio, hora_fin: horaFin });
+      currentTime += durationPerSite;
+    }
+
+    // Crear relaciones VISITARA para cada sitio favorito
+    const tx = session.beginTransaction();
+    try {
+      for (const h of horarios) {
+        await tx.run(
+          `MATCH (u:Usuario {nombre: $usuario}), (s:Sitio {nombre: $sitio})
+           CREATE (u)-[:VISITARA {
+             fecha: $fecha,
+             hora_inicio: $hora_inicio,
+             hora_fin: $hora_fin
+           }]->(s)`,
+          {
+            usuario,
+            sitio: h.sitio,
+            fecha,
+            hora_inicio: h.hora_inicio,
+            hora_fin: h.hora_fin
+          }
+        );
+      }
+      await tx.commit();
+      res.status(201).json({
+        message: 'Ruta planificada creada con sitios favoritos',
+        ruta: horarios
+      });
+    } catch (error) {
+      await tx.rollback();
+      throw error;
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
     await session.close();
   }
 };
+
+// Función auxiliar para formatear tiempo en minutos a HH:mm
+function formatTime(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+}
 
 module.exports = {
   createVisita,

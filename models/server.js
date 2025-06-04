@@ -76,6 +76,7 @@ class Server {
         this.app.use(this.pathsNeo.authNeo, require('../routes/authNeo.route'))
         this.app.use(this.pathsNeo.famosos, require('../routes/famososNeo.route'));
         this.app.use(this.pathsNeo.visitas, require('../routes/visitasNeo.route'));
+        this.app.use(this.pathsNeo.tags, require('../routes/tagsNeo.route'))
     }
     
 

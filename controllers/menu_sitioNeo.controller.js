@@ -2,7 +2,7 @@ const { driver } = require('../database/Neo4jConnection');
 
 // Crear un menú
 const createMenu = async (req, res) => {
-  const { id, sitioId, platos, valorTotal } = req.body;
+  const { id, nombreSitio, platos, valorTotal } = req.body;
   const session = driver.session();
   try {
     // Crear nodo de menú
@@ -13,17 +13,17 @@ const createMenu = async (req, res) => {
 
     // Crear relación con sitio
     await session.run(
-      `MATCH (s:Sitio {id: $sitioId}), (m:Menu {id: $id})
+      `MATCH (s:Sitio {nombre: $nombreSitio}), (m:Menu {id: $id})
        CREATE (s)-[:OFRECE_MENU]->(m)`,
-      { sitioId, id }
+      { nombreSitio, id }
     );
 
     // Crear relaciones con platos
-    for (const platoId of platos) {
+    for (const nombre of platos) {
       await session.run(
-        `MATCH (p:Plato {id: $platoId}), (m:Menu {id: $menuId})
+        `MATCH (p:Plato {nombre: $nombre}), (m:Menu {id: $menuId})
          CREATE (m)-[:INCLUYE_PLATO]->(p)`,
-        { platoId, menuId: id }
+        { nombre, menuId: id }
       );
     }
 

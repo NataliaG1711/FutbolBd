@@ -2,7 +2,7 @@ const { driver } = require('../database/Neo4jConnection');
 
 // Crear un Tag
 const createTag = async (req, res) => {
-  const { id, famoso, comentario, sitioId } = req.body;
+  const { id, usuario, famoso, comentario, sitio } = req.body;
   const session = driver.session();
 
   try {
@@ -11,19 +11,28 @@ const createTag = async (req, res) => {
       `CREATE (t:Tag {
         id: $id,
         famoso: $famoso,
-        comentario: $comentario
+        comentario: $comentario,
+        sitio: $sitio
       })`,
-      { id, famoso, comentario }
+      { id, famoso, comentario, sitio }
     );
 
-    // Relacionarlo con el sitio
+    // Crear relaciones
     await session.run(
-      `MATCH (t:Tag {id: $id}), (s:Sitio {id: $sitioId})
-       CREATE (t)-[:FOTO_EN]->(s)`,
-      { id, sitioId }
+      `
+      MATCH (t:Tag {id: $id}),
+            (s:Sitio {nombre: $sitio}),
+            (f:Famoso {nombre: $famoso}),
+            (u:Usuario {nombre: $usuario})
+      
+      CREATE (t)-[:FOTO_EN]->(s),
+             (t)-[:ETIQUETADO_EN]->(f),
+             (u)-[:HIZO]->(t)
+      `,
+      { id, sitio, famoso, usuario }
     );
 
-    res.status(201).json({ message: 'Tag creado correctamente' });
+    res.status(201).json({ message: 'Tag creado correctamente y relaciones establecidas' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   } finally {
